@@ -59,7 +59,8 @@ def stem(word):
 	'Convert to lower case in order to compare it easy'
 	word = word.lower()
 
-	c = 0
+	#c = 0
+	c = MIN_WORD_LEN
 	for _ in word:
 		'Reduce the word from the begining towards the end'
 		stem = word[c:wordLen]
