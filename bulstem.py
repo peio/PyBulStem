@@ -1,14 +1,26 @@
 #!/usr/local/bin/python
 # -*- coding: utf-8 -*-
-#
-#  Implementation author: Peio Popov <peio@peio.org> 
-#  Algorithm author: Preslav Nakov, nakov@cs.berkeley.edu, UC Berkeley
-#  
-#  Description: Stems a text file
+'''
+Implementation author: Peio Popov <peio@peio.org> 
+Algorithm author: Preslav Nakov <nakov@cs.berkeley.edu>, UC Berkeley
+Paper: BulStem: Inflectional Stemmer For Bulgarian http://people.ischool.berkeley.edu/~nakov/bulstem/
+
+Description: Stems a text file
+
+Example usage: 
+> from nltk.tokenize import word_tokenize, sent_tokenize, wordpunct_tokenize
+> from bulstem import stem, MIN_WORD_LEN
+
+> text = u""" "Името на Мирослава Тодорова ми стана известно, когато към мен се обърнаха жертвите на престъпността", заяви по повод дисциплинарното уволнение на съдията вицепремиерът и министър на вътрешните работи Цветан Цветанов. В сутрешния блок на БНТ Цветанов наблегна на проблемите в съдебната система, като започна разговора с думите "ВСС е независима съдебна институция, която не бих искал да коментирам" """ 
+
+> for word in wordpunct_tokenize(text):
+	if len(word) >= MIN_WORD_LEN:
+		print stem(word).encode('utf-8'),
+'''
 
 import cPickle, re
 
-### CONSTANTS
+# CONSTANTS
 RULES_FILE = "rules/stem_rules_context_2_UTF-8.txt"
 MIN_RULE_FREQ = 2
 MIN_WORD_LEN = 3
@@ -32,16 +44,14 @@ def fetchTheRules(RULES_FILE, MIN_RULE_FREQ):
 		
 		if rule_parts != None:
 			if rule_parts.group(3) > MIN_RULE_FREQ:
-				'Build the dictionary'
+				
+				'Build a dictionary indexed by the lenght of the match'
 				match_len = len(rule_parts.group(1))
 				try:
-					StemmingRules[match_len][rule_parts.group(1)] = rule_parts.group(2)
-					
+					StemmingRules[match_len][rule_parts.group(1)] = rule_parts.group(2)					
 				except KeyError:
 					StemmingRules[match_len] = {}
 					StemmingRules[match_len][rule_parts.group(1)] = rule_parts.group(2)
-
-				# StemmingRules[rule_parts.group(1)] = rule_parts.group(2)
 
 		else:
 			print "Bad stemming rule:",rule.encode('utf-8')
@@ -67,6 +77,7 @@ def stem(word):
 	'Convert to lower case in order to compare it easy'
 	word = word.lower()
 
+	'Start from the minimal meaningful word'
 	c = MIN_WORD_LEN
 	for _ in word:
 		'Reduce the word from the begining towards the end'
@@ -89,4 +100,3 @@ def stem(word):
 'Try to reload the rules or build them from the text files'
 try: StemmingRules = cPickle.load(open('rules/StemmingRules-MinFreq-'+str(MIN_RULE_FREQ)+'.pickle', 'rb'))
 except: StemmingRules = fetchTheRules(RULES_FILE, MIN_RULE_FREQ)
-
