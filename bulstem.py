@@ -27,13 +27,22 @@ def fetchTheRules(RULES_FILE, MIN_RULE_FREQ):
 		if re_empty_line.match(rule):
 			continue
 			
-		'Break the rule line in three parts stem(1) - reduce(2) - probability(3)'
+		'Break the rule line in three parts match(1) - reduce(2) - probability(3)'
 		rule_parts = re_rule_line.match(rule)
 		
 		if rule_parts != None:
 			if rule_parts.group(3) > MIN_RULE_FREQ:
 				'Build the dictionary'
-				StemmingRules[rule_parts.group(1)] = rule_parts.group(2)
+				match_len = len(rule_parts.group(1))
+				try:
+					StemmingRules[match_len][rule_parts.group(1)] = rule_parts.group(2)
+					
+				except KeyError:
+					StemmingRules[match_len] = {}
+					StemmingRules[match_len][rule_parts.group(1)] = rule_parts.group(2)
+
+				# StemmingRules[rule_parts.group(1)] = rule_parts.group(2)
+
 		else:
 			print "Bad stemming rule:",rule.encode('utf-8')
 			continue
@@ -42,7 +51,6 @@ def fetchTheRules(RULES_FILE, MIN_RULE_FREQ):
 	cPickle.dump(StemmingRules, open('rules/StemmingRules-MinFreq-'+str(MIN_RULE_FREQ)+'.pickle', 'wb')) 
 
 	return StemmingRules
-
 
 def stem(word):
 	'Stemm the word'
@@ -59,20 +67,21 @@ def stem(word):
 	'Convert to lower case in order to compare it easy'
 	word = word.lower()
 
-	#c = 0
 	c = MIN_WORD_LEN
 	for _ in word:
 		'Reduce the word from the begining towards the end'
 		stem = word[c:wordLen]
-		c +=1
-
+	
+		'Calculate the reminding symbols for better search'
+		word_reminder = wordLen - c
+		
 		'Check if there is a stem matching the reminder of the word'
-		if StemmingRules.has_key(stem):
+		if StemmingRules[word_reminder].has_key(stem):
 			'Return stemmed word'
-			return word[:c-1]+StemmingRules[stem]
+			return word[:c]+StemmingRules[word_reminder][stem]
 			break
 		else:
-			continue
+			c += 1
 
 	'Always return something'		
 	return word
@@ -80,5 +89,4 @@ def stem(word):
 'Try to reload the rules or build them from the text files'
 try: StemmingRules = cPickle.load(open('rules/StemmingRules-MinFreq-'+str(MIN_RULE_FREQ)+'.pickle', 'rb'))
 except: StemmingRules = fetchTheRules(RULES_FILE, MIN_RULE_FREQ)
-
 
