@@ -48,6 +48,7 @@ def stem(word):
 	'Stemm the word'
 
 	'Do not stem short words'
+	wordLen = len(word)
 	if wordLen <= MIN_WORD_LEN:
 		return word
 
@@ -57,8 +58,6 @@ def stem(word):
 
 	'Convert to lower case in order to compare it easy'
 	word = word.lower()
-
-	wordLen = len(word)
 
 	c = 0
 	for _ in word:
