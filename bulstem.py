@@ -6,16 +6,17 @@
 #  
 #  Description: Stems a text file
 
-import codecs, re
+import cPickle, re
 
 ### CONSTANTS
-RULES_FILE = "stem_rules_context_2_UTF-8.txt"
+RULES_FILE = "rules/stem_rules_context_2_UTF-8.txt"
 MIN_RULE_FREQ = 2
 MIN_WORD_LEN = 3
 
 def fetchTheRules(RULES_FILE, MIN_RULE_FREQ):
 	'Read the rules and load them into dictionary'
-	
+	import codecs
+
 	re_empty_line = re.compile('^\s*$')
 	re_rule_line = re.compile(u"([а-я-]+) ==> ([a-я-]+) (\d+)", re.U)
 	StemmingRules = {}
@@ -33,7 +34,10 @@ def fetchTheRules(RULES_FILE, MIN_RULE_FREQ):
 			print "Bad stemming rule:",rule.encode('utf-8')
 			continue
 
+	cPickle.dump(StemmingRules, open('rules/StemmingRules-MinFreq-'+str(MIN_RULE_FREQ)+'.pickle', 'wb')) 
+
 	return StemmingRules
+
 
 def stem(word):
 
@@ -60,15 +64,8 @@ def stem(word):
 
 	return word
 
-		
-StemmingRules = fetchTheRules(RULES_FILE, MIN_RULE_FREQ)
+
+try: StemmingRules = cPickle.load(open('rules/StemmingRules-MinFreq-'+str(MIN_RULE_FREQ)+'.pickle', 'rb'))
+except: StemmingRules = fetchTheRules(RULES_FILE, MIN_RULE_FREQ)
 
 
-
-text = u""" "Името на Мирослава Тодорова ми стана известно, когато към мен се обърнаха жертвите на престъпността", заяви по повод дисциплинарното уволнение на съдията вицепремиерът и министър на вътрешните работи Цветан Цветанов. В сутрешния блок на БНТ Цветанов наблегна на проблемите в съдебната система, като започна разговора с думите "ВСС е независима съдебна институция, която не бих искал да коментирам" """ 
-
-from nltk.tokenize import word_tokenize, sent_tokenize, wordpunct_tokenize
-
-for word in wordpunct_tokenize(text):
-	print stem(word).encode('utf-8'),
-	# print word.encode('utf-8'),
