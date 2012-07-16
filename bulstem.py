@@ -19,7 +19,7 @@ def fetchTheRules(RULES_FILE, MIN_RULE_FREQ):
 	'Read the rules and load them into dictionary'
 	import codecs
 
-	re_empty_line = re.compile('^\s*$')
+	re_empty_line = re.compile('^\s*$') 
 	re_rule_line = re.compile(u"([а-я-]+) ==> ([a-я-]+) (\d+)", re.U)
 	StemmingRules = {}
 
@@ -27,15 +27,18 @@ def fetchTheRules(RULES_FILE, MIN_RULE_FREQ):
 		if re_empty_line.match(rule):
 			continue
 			
+		'Break the rule line in three parts stem(1) - reduce(2) - probability(3)'
 		rule_parts = re_rule_line.match(rule)
 		
 		if rule_parts != None:
 			if rule_parts.group(3) > MIN_RULE_FREQ:
+				'Build the dictionary'
 				StemmingRules[rule_parts.group(1)] = rule_parts.group(2)
 		else:
 			print "Bad stemming rule:",rule.encode('utf-8')
 			continue
 
+	'Using a pickle would be faster'
 	cPickle.dump(StemmingRules, open('rules/StemmingRules-MinFreq-'+str(MIN_RULE_FREQ)+'.pickle', 'wb')) 
 
 	return StemmingRules
@@ -44,31 +47,37 @@ def fetchTheRules(RULES_FILE, MIN_RULE_FREQ):
 def stem(word):
 	'Stemm the word'
 
+	'Do not stem short words'
 	if wordLen <= MIN_WORD_LEN:
 		return word
 
+	'If no bulgarian vowel - no valid word'
 	if not re_bg_vowels.match(word):
 		return word
 
+	'Convert to lower case in order to compare it easy'
 	word = word.lower()
 
 	wordLen = len(word)
 
 	c = 0
 	for _ in word:
+		'Reduce the word from the begining towards the end'
 		stem = word[c:wordLen]
 		c +=1
 
+		'Check if there is a stem matching the reminder of the word'
 		if StemmingRules.has_key(stem):
+			'Return stemmed word'
 			return word[:c-1]+StemmingRules[stem]
 			break
-
 		else:
 			continue
 
+	'Always return something'		
 	return word
 
-
+'Try to reload the rules or build them from the text files'
 try: StemmingRules = cPickle.load(open('rules/StemmingRules-MinFreq-'+str(MIN_RULE_FREQ)+'.pickle', 'rb'))
 except: StemmingRules = fetchTheRules(RULES_FILE, MIN_RULE_FREQ)
 
