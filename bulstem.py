@@ -13,6 +13,8 @@ RULES_FILE = "rules/stem_rules_context_2_UTF-8.txt"
 MIN_RULE_FREQ = 2
 MIN_WORD_LEN = 3
 
+re_bg_vowels = re.compile(u"[аъоуеияю]")
+
 def fetchTheRules(RULES_FILE, MIN_RULE_FREQ):
 	'Read the rules and load them into dictionary'
 	import codecs
@@ -40,16 +42,17 @@ def fetchTheRules(RULES_FILE, MIN_RULE_FREQ):
 
 
 def stem(word):
-
-	re_bg_vowels = re.compile(u"[аъоуеияю]")
-
-	wordLen = len(word)
+	'Stemm the word'
 
 	if wordLen <= MIN_WORD_LEN:
 		return word
 
 	if not re_bg_vowels.match(word):
 		return word
+
+	word = word.lower()
+
+	wordLen = len(word)
 
 	c = 0
 	for _ in word:
@@ -59,6 +62,7 @@ def stem(word):
 		if StemmingRules.has_key(stem):
 			return word[:c-1]+StemmingRules[stem]
 			break
+
 		else:
 			continue
 
